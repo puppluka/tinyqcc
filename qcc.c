@@ -198,6 +198,32 @@ void WriteData (int crc)
 	dprograms_t	progs;
 	int			h;
 	int			i;
+	
+	// tracking array to mark used OFS's
+	char used_global[MAX_REGS];
+	memset(used_global, 0, sizeof(used_global));
+	
+	// scan all statements, flag referenced offsets
+	for (i = 0; i < numstatements; i++)
+	{
+		dstatement_t *s = &statements[i];
+		
+		// OP_GOTO uses 'a' as a jump branch, not a global offset. Skip it entirely.
+		if (s->op == OP_GOTO) {
+			continue;
+		}
+		
+		// OP_IF and OP_IFNOT use 'a' as a global offset, but 'b' as a jump branch.
+		if (s->op == OP_IF || s->op == OP_IFNOT) {
+			if (s->a >= 0 && s->a < MAX_REGS) used_global[s->a] = 1;
+			continue;
+		}
+		
+		// For all other operations, a, b, and c are safe global memory offsets
+		if (s->a >= 0 && s->a < MAX_REGS) used_global[s->a] = 1;
+		if (s->b >= 0 && s->b < MAX_REGS) used_global[s->b] = 1;
+		if (s->c >= 0 && s->c < MAX_REGS) used_global[s->c] = 1;
+	}
 
 	for (def = pr.def_head.next ; def ; def = def->next)
 	{
@@ -215,14 +241,20 @@ void WriteData (int crc)
 			dd->s_name = CopyString (def->name);
 			dd->ofs = G_INT(def->ofs);
 		}
+		
+		// determine if this global is required for saves
+		int is_saveglobal = (!def->initialized
+							&& def->type->type != ev_function
+							&& def->type->type != ev_field
+							&& def->scope == NULL);
+
+		// the sweep. if !used & !saveglobal, skip it!
+		if (!used_global[def->ofs] && !is_saveglobal) {continue;}
+		
 		dd = &globals[numglobaldefs];
 		numglobaldefs++;
 		dd->type = def->type->type;
-		if ( !def->initialized
-		&& def->type->type != ev_function
-		&& def->type->type != ev_field
-		&& def->scope == NULL)
-			dd->type |= DEF_SAVEGLOBGAL;
+		if (is_saveglobal) dd->type |= DEF_SAVEGLOBGAL;
 		dd->s_name = CopyString (def->name);
 		dd->ofs = def->ofs;
 	}
