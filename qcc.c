@@ -90,13 +90,25 @@ void BspModels (void)
 }
 
 // CopyString returns an offset from the string heap
-int	CopyString (char *str)
+int CopyString (char *str)
 {
-	int		old;
+	int i;
+	int old;
 	
+	// Scan the existing string heap for an exact match.
+	// We start at index 1 because strofs initializes to 1 in InitData().
+	for (i = 1; i < strofs; i += strlen(strings + i) + 1)
+	{
+		if (!strcmp(strings + i, str))
+		{
+			return i; // Duplicate found! Return the existing offset.
+		}
+	}
+	
+	// Vanilla behavior: no match found, append to the heap
 	old = strofs;
-	strcpy (strings+strofs, str);
-	strofs += strlen(str)+1;
+	strcpy (strings + strofs, str);
+	strofs += strlen(str) + 1;
 	return old;
 }
 
