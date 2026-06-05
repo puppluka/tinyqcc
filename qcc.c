@@ -254,7 +254,7 @@ void WriteData (int crc)
 		dd = &globals[numglobaldefs];
 		numglobaldefs++;
 		dd->type = def->type->type;
-		if (is_saveglobal) dd->type |= DEF_SAVEGLOBGAL;
+		if (is_saveglobal) dd->type |= DEF_SAVEGLOBAL;
 		dd->s_name = CopyString (def->name);
 		dd->ofs = def->ofs;
 	}

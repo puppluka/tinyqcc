@@ -1,28 +1,17 @@
+CC = cc
+CFLAGS = -O2 -g -Wall -std=gnu89 -Wno-return-type
+TARGET = qcc
+OBJS = qcc.o pr_lex.o pr_comp.o cmdlib.o
 
-CFLAGS = -g -Wall -std=gnu89 -Wno-return-type
+all: $(TARGET)
 
-EXES = qcc
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
-all: $(EXES)
-
-install:
-	make app
-	cp $(EXES) /LocalApps
-
-app:
-	make "CFLAGS = -O4 -g -Wall -arch i386 -arch hppa"
-
-debug:
-	make "CFLAGS = -g -Wall"
-
-profile:
-	make "CFLAGS = -pg -Wall"
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o $(EXES)
+	rm -f $(OBJS) $(TARGET)
 
-.c.o: ; cc -c $(CFLAGS) -o $@ $*.c
-
-QCCFILES = qcc.o pr_lex.o pr_comp.o cmdlib.o
-qcc : $(QCCFILES)
-	cc $(CFLAGS) -o qcc $(QCCFILES)
+.PHONY: all clean

@@ -26,7 +26,7 @@ Run quake with "-game mygame", which will cause quake to look for data in the my
 
 The header qcc.h has the language spec and some documentation, but I'm not positive if it is all current.
 
-The only documentation for the various builtin functions I can offer is the source code used by quake.  See builtin.c.  Some of them are required to do things outside the scope of the qc world, and some are just there for speed reasons.
+The only documentation for the various builtin functions I can offer is the source code used by quake. See builtin.c. Some of them are required to do things outside the scope of the qc world, and some are just there for speed reasons.
 
 PLEASE don't ask me questions about all this!
 

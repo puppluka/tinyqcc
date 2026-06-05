@@ -402,6 +402,46 @@ def_t	*PR_ParseValue (void)
 	return d;
 }
 
+/*
+====================
+PR_CreateImmediateFloat
+
+Safely creates or reuses a constant value without touching the lexer.
+====================
+*/
+def_t *PR_CreateImmediateFloat (float val)
+{
+	def_t	*cn;
+	
+	// 1. Deduplication: Check if we already have this exact constant
+	for (cn = pr.def_head.next ; cn ; cn = cn->next)
+	{
+		if (cn->initialized && cn->type == &type_float && !strcmp(cn->name, "IMMEDIATE"))
+		{
+			if (G_FLOAT(cn->ofs) == val)
+				return cn;
+		}
+	}
+	
+	// 2. Not found, safely allocate a new one
+	cn = malloc (sizeof(def_t));
+	cn->next = NULL;
+	pr.def_tail->next = cn;
+	pr.def_tail = cn;
+	cn->type = &type_float;
+	cn->name = "IMMEDIATE";
+	cn->initialized = 1;
+	cn->scope = NULL;
+
+	// 3. Put it in the globals block
+	cn->ofs = numpr_globals;
+	pr_global_defs[cn->ofs] = cn;
+	numpr_globals += type_size[type_float.type];
+	
+	G_FLOAT(cn->ofs) = val;
+	
+	return cn;
+}
 
 /*
 ============
@@ -514,6 +554,36 @@ def_t *PR_Expression (int priority)
 			if (type_a == ev_pointer && type_b != e->type->aux_type->type)
 				PR_ParseError ("type mismatch for %s", op->name);
 			
+			// --- PHASE 4: CONSTANT FOLDING ---
+			// Check if both sides are immediate floats
+			if (e->name && !strcmp(e->name, "IMMEDIATE") && type_a == ev_float &&
+				e2->name && !strcmp(e2->name, "IMMEDIATE") && type_b == ev_float)
+			{
+				float v1 = G_FLOAT(e->ofs);
+				float v2 = G_FLOAT(e2->ofs);
+				float result = 0;
+				int can_fold = 1;
+
+				if (!strcmp(op->name, "+")) result = v1 + v2;
+				else if (!strcmp(op->name, "-")) result = v1 - v2;
+				else if (!strcmp(op->name, "*")) result = v1 * v2;
+				else if (!strcmp(op->name, "/")) 
+				{
+					if (v2 == 0) can_fold = 0; // TRAP AVOIDED: Division by zero!
+					else result = v1 / v2;
+				}
+				else can_fold = 0; // Not a basic math operation
+
+				if (can_fold) 
+				{
+					// Safely create the new constant and replace the left side (e)
+					e = PR_CreateImmediateFloat(result);
+					
+					// Break out of the operator loop, completely bypassing PR_Statement!
+					break; 
+				}
+			}
+			// --- END CONSTANT FOLDING ---
 			
 			if (op->right_associative)
 				e = PR_Statement (op, e2, e);
