@@ -53,7 +53,7 @@ char		precache_files[MAX_FILES][MAX_DATA_PATH];
 int			precache_files_block[MAX_SOUNDS];
 int			numfiles;
 
-bool autoproto_pass = false;
+boolean autoproto_pass = false;
 
 /*
 =================

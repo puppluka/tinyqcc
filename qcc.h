@@ -331,7 +331,7 @@ typedef struct
 extern	opcode_t	pr_opcodes[99];		// sized by initialization
 
 extern	boolean	pr_dumpasm;
-
+extern  boolean autoproto_pass;
 extern	def_t		*pr_global_defs[MAX_REGS];	// to find def for a global variable
 
 typedef enum {
