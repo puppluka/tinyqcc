@@ -53,6 +53,7 @@ char		precache_files[MAX_FILES][MAX_DATA_PATH];
 int			precache_files_block[MAX_SOUNDS];
 int			numfiles;
 
+bool autoproto_pass = false;
 
 /*
 =================
@@ -1347,7 +1348,7 @@ void main (int argc, char **argv)
 		strcpy (sourcedir, "");
 
 	InitData ();
-	
+
 	sprintf (filename, "%sprogs.src", sourcedir);
 	LoadFile (filename, (void *)&src);
 	
@@ -1361,7 +1362,26 @@ void main (int argc, char **argv)
 
 	PR_BeginCompilation (malloc (0x100000), 0x100000);
 
-// compile all the files
+	char *src_start = src; // start of filelist
+	
+	if (CheckParm("-autoprotos")) {
+		printf("Initializing auto-prototyping pre-pass...\n");
+		autoproto_pass = true;
+		do {
+			src = COM_Parse(src);
+			if (!src) break;
+			sprintf(filename, "%s%s", sourcedir, com_token);
+			LoadFile(filename, (void *)&src2);
+			if (!PR_CompileFile(src2, filename)) exit (1);
+		} while (1);
+
+		autoproto_pass = false;
+		printf("Initializing QuakeC Compilation Pass...");
+
+		src = src_start;
+	}
+
+	// 3. vanilla loop:compile all the files
 	do
 	{
 		src = COM_Parse(src);

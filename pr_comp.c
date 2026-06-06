@@ -986,14 +986,33 @@ void PR_ParseDefs (void)
 
 		def = PR_GetDef (type, name, pr_scope, true);
 		
-// check for an initialization
+		// check for an initialization
 		if ( PR_Check ("=") )
 		{
-			if (def->initialized)
+			// prevent false 'redeclared' errors during pass2
+			if (def->initialized && !autoproto_pass)
 				PR_ParseError ("%s redeclared", name);
 	
 			if (type->type == ev_function)
 			{
+				//autoprototype prepass
+				if (autoproto_pass)
+				{
+					int braces = 0;
+					// skip state opcode if it exists [1, frames]
+					if (PR_Check("[")) {
+						while (!PR_Check("]")) PR_Lex();
+					}
+					// Fastforward through func body
+					PR_Expect("{");
+					braces = 1;
+					while (braces > 0 && pr_token_type != tt_eof) {
+						PR_Lex();
+						if (pr_token[0] == '{') braces++;
+						if (pr_token[0] == '}') braces--;
+					}
+					continue; //bypass bytecode generation entirely
+				}
 				locals_start = locals_end = numpr_globals;
 				pr_scope = def;
 				f = PR_ParseImmediateStatements (type);
@@ -1004,7 +1023,7 @@ void PR_ParseDefs (void)
 //				if (pr_dumpasm)
 //					PR_PrintFunction (def);
 
-		// fill in the dfunction
+				// fill in the dfunction
 				df = &functions[numfunctions];
 				numfunctions++;
 				if (f->builtin)
@@ -1023,7 +1042,14 @@ void PR_ParseDefs (void)
 			}
 			else if (pr_immediate_type != type)
 				PR_ParseError ("wrong immediate type for %s", name);
-	
+
+			// --- PHASE 5: AUTOPROTO PRE-PASS ---
+			if (autoproto_pass) {
+				PR_Lex(); // eat immediate value
+				continue; // bypass memory init
+			}
+			// --- END AUTOPROTO ---
+
 			def->initialized = 1;
 			memcpy (pr_globals + def->ofs, &pr_immediate, 4*type_size[pr_immediate_type->type]);
 			PR_Lex ();
