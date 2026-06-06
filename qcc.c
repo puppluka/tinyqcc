@@ -190,6 +190,230 @@ void InitData (void)
 		def_parms[i].ofs = OFS_PARM0 + 3*i;
 }
 
+/*
+====================
+OptimizeControlFlow
+
+Post-parse optimization pass to clean up folded branches 
+and thread chained jumps together.
+====================
+*/
+void OptimizeControlFlow(void)
+{
+	int i, target, depth;
+	def_t *def;
+	float val;
+
+	printf("Optimizing control flow...\n");
+
+	for (i = 0; i < numstatements; i++)
+	{
+		// --- 1. BRANCH SIMPLIFICATION ---
+		if (statements[i].op == OP_IF || statements[i].op == OP_IFNOT)
+		{
+			// Check if the condition variable 'a' is a known immediate float
+			def = pr_global_defs[statements[i].a];
+			if (def && def->initialized && def->type == &type_float && !strcmp(def->name, "IMMEDIATE"))
+			{
+				val = G_FLOAT(statements[i].a);
+				
+				if (statements[i].op == OP_IF)
+				{
+					if (val == 0.0f) 
+					{
+						// if (0) -> Never jumps. Turn into a safe NOP.
+						statements[i].op = OP_GOTO;
+						statements[i].a = 1;
+					}
+					else 
+					{
+						// if (1) -> Always jumps. Force the jump.
+						statements[i].op = OP_GOTO;
+						statements[i].a = statements[i].b; 
+					}
+				}
+				else if (statements[i].op == OP_IFNOT)
+				{
+					if (val == 0.0f) 
+					{
+						// ifnot (0) -> Always jumps. Force the jump.
+						statements[i].op = OP_GOTO;
+						statements[i].a = statements[i].b; 
+					}
+					else 
+					{
+						// ifnot (1) -> Never jumps. Turn into a safe NOP.
+						statements[i].op = OP_GOTO;
+						statements[i].a = 1;
+					}
+				}
+			}
+		}
+
+		// --- 2. JUMP THREADING ---
+		if (statements[i].op == OP_GOTO)
+		{
+			target = i + statements[i].a;
+			depth = 0;
+
+			// Follow the chain: If our destination is ANOTHER jump, keep following it
+			while (target >= 0 && target < numstatements && 
+			       statements[target].op == OP_GOTO && statements[target].a != 1)
+			{
+				target = target + statements[target].a;
+				
+				depth++;
+				if (depth > 10) break; // Circuit breaker to prevent infinite loops in bad QC
+			}
+
+			// Update our original GOTO to bypass the middleman
+			statements[i].a = target - i;
+		}
+		// --- 3. COPY PROPAGATION & DEAD STORE ELIMINATION ---
+		// Look at a 2-instruction window (current and next)
+		if (i < numstatements - 1)
+		{
+			dstatement_t *s1 = &statements[i];
+			dstatement_t *s2 = &statements[i+1];
+			
+			// Is s1 a STORE operation? (OP_STORE_F through OP_STORE_FNC)
+			// And is s2 the exact same type of STORE operation?
+			if (s1->op >= OP_STORE_F && s1->op <= OP_STORE_FNC && s1->op == s2->op)
+			{
+				// In QCC STORE operations: 'a' is the Source, 'b' is the Destination.
+				// If s2's Source is exactly s1's Destination...
+				if (s1->b == s2->a)
+				{
+					// 1. Copy Propagation: Make s2 read directly from s1's original source
+					s2->a = s1->a;
+					
+					// 2. Dead Store Elimination: Was the middleman (s1->b) a compiler temporary?
+					def_t *dest_def = pr_global_defs[s1->b];
+					
+					// Temporary variables in QCC either have a NULL name, or are named "temp"
+					if (dest_def && (dest_def->name == NULL || !strcmp(dest_def->name, "temp")))
+					{
+						// The middleman is dead! Safely NOP the first instruction.
+						s1->op = OP_GOTO;
+						s1->a = 1; 
+						s1->b = 0;
+						s1->c = 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
+====================
+OptimizeCallGraph
+
+Identifies dead functions, turns them into ghost functions (pointing to statement 0),
+and physically compresses the bytecode array to remove their statements.
+====================
+*/
+void OptimizeCallGraph(void)
+{
+	int i, j, f, len;
+	char alive[MAX_FUNCTIONS];
+	dstatement_t new_statements[MAX_STATEMENTS];
+	int new_num = 1; // Statement 0 is hardcoded by QCC as a safe OP_DONE
+
+	memset(alive, 0, sizeof(alive));
+	alive[0] = 1; // The null function is always alive
+	new_statements[0].op = 0; // OP_DONE
+
+	// 1. Built-in engine functions don't have bytecode, keep them alive
+	for (f = 1; f < numfunctions; f++) {
+		if (functions[f].first_statement < 0) alive[f] = 1;
+	}
+
+	// 2. Mark engine entry points and explicitly referenced functions
+	def_t *def;
+	for (def = pr.def_head.next; def; def = def->next)
+	{
+		if (def->type->type == ev_function && def->initialized)
+		{
+			int func_idx = G_FUNCTION(def->ofs);
+			if (func_idx <= 0 || func_idx >= numfunctions) continue;
+
+			// The Quake engine strictly requires these entry points to exist
+			if (!strcmp(def->name, "main") || !strcmp(def->name, "StartFrame") ||
+			    !strcmp(def->name, "PlayerPreThink") || !strcmp(def->name, "PlayerPostThink") ||
+			    !strcmp(def->name, "ClientKill") || !strcmp(def->name, "ClientConnect") ||
+			    !strcmp(def->name, "PutClientInServer") || !strcmp(def->name, "ClientDisconnect") ||
+			    !strcmp(def->name, "SetNewParms") || !strcmp(def->name, "SetChangeParms") ||
+			    !strcmp(def->name, "worldspawn"))
+			{
+				alive[func_idx] = 1;
+				continue;
+			}
+
+			// --- MAP ENTITY REFLECTION HEURISTIC ---
+			// The Quake engine uses string reflection to spawn map entities.
+			// Map spawn functions (like info_player_start) always take 0 parms and return void.
+			// We must assume any matching function might be called by the BSP.
+			if (def->type->num_parms == 0 && def->type->aux_type->type == ev_void)
+			{
+				alive[func_idx] = 1;
+				continue;
+			}
+
+			// If the function's memory offset is used in ANY statement, it is alive
+			for (i = 0; i < numstatements; i++)
+			{
+				dstatement_t *s = &statements[i];
+				if (s->op == OP_GOTO) continue; // Jumps are relative, not global offsets
+				
+				if (s->op == OP_IF || s->op == OP_IFNOT) {
+					if (s->a == def->ofs) { alive[func_idx] = 1; break; }
+					continue;
+				}
+				
+				if (s->a == def->ofs || s->b == def->ofs || s->c == def->ofs) {
+					alive[func_idx] = 1;
+					break;
+				}
+			}
+		}
+	}
+
+	// 3. Compress the statements array
+	printf("Stripping dead function bytecode...\n");
+	for (f = 1; f < numfunctions; f++)
+	{
+		if (functions[f].first_statement < 0) continue; // Skip built-ins
+
+		int start = functions[f].first_statement;
+		
+		// QCC parser always finishes functions with an OP_DONE (opcode 0)
+		len = 0;
+		while (start + len < numstatements && statements[start + len].op != 0) {
+			len++;
+		}
+		len++; // Include the terminating OP_DONE
+
+		if (alive[f])
+		{
+			// Alive: Copy to new array and update its starting index
+			functions[f].first_statement = new_num;
+			for (j = 0; j < len; j++) {
+				new_statements[new_num + j] = statements[start + j];
+			}
+			new_num += len;
+		}
+		else
+		{
+			// Dead (Ghost Function): Point its execution directly to statement 0
+			functions[f].first_statement = 0;
+		}
+	}
+
+	// 4. Overwrite original array and update the global count
+	memcpy(statements, new_statements, new_num * sizeof(dstatement_t));
+	numstatements = new_num;
+}
 
 void WriteData (int crc)
 {
@@ -1169,7 +1393,11 @@ void main (int argc, char **argv)
 	
 // write progdefs.h
 	crc = PR_WriteProgdefs ("progdefs.h");
-	
+
+// run post-parse optimizations
+	OptimizeControlFlow();
+	OptimizeCallGraph();
+
 // write data file
 	WriteData (crc);
 	

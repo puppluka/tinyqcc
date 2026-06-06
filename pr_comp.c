@@ -444,6 +444,51 @@ def_t *PR_CreateImmediateFloat (float val)
 }
 
 /*
+====================
+PR_CreateImmediateVector
+
+Safely creates or reuses a constant vector without touching the lexer.
+====================
+*/
+def_t *PR_CreateImmediateVector (float x, float y, float z)
+{
+	def_t	*cn;
+	
+	// 1. Deduplication: Do we already have this exact vector?
+	for (cn = pr.def_head.next ; cn ; cn = cn->next)
+	{
+		if (cn->initialized && cn->type == &type_vector && !strcmp(cn->name, "IMMEDIATE"))
+		{
+			if (G_FLOAT(cn->ofs) == x && 
+			    G_FLOAT(cn->ofs+1) == y && 
+			    G_FLOAT(cn->ofs+2) == z)
+				return cn;
+		}
+	}
+	
+	// 2. Not found, safely allocate a new one
+	cn = malloc (sizeof(def_t));
+	cn->next = NULL;
+	pr.def_tail->next = cn;
+	pr.def_tail = cn;
+	cn->type = &type_vector;
+	cn->name = "IMMEDIATE";
+	cn->initialized = 1;
+	cn->scope = NULL;
+
+	// 3. Put it in the globals block
+	cn->ofs = numpr_globals;
+	pr_global_defs[cn->ofs] = cn;
+	numpr_globals += type_size[type_vector.type]; // Vectors take 3 slots!
+	
+	G_FLOAT(cn->ofs) = x;
+	G_FLOAT(cn->ofs+1) = y;
+	G_FLOAT(cn->ofs+2) = z;
+	
+	return cn;
+}
+
+/*
 ============
 PR_Term
 ============
@@ -554,34 +599,57 @@ def_t *PR_Expression (int priority)
 			if (type_a == ev_pointer && type_b != e->type->aux_type->type)
 				PR_ParseError ("type mismatch for %s", op->name);
 			
-			// --- PHASE 4: CONSTANT FOLDING ---
-			// Check if both sides are immediate floats
-			if (e->name && !strcmp(e->name, "IMMEDIATE") && type_a == ev_float &&
-				e2->name && !strcmp(e2->name, "IMMEDIATE") && type_b == ev_float)
+			// --- PHASE 4: CONSTANT FOLDING (FLOATS & VECTORS) ---
+			int is_imm_a = (e->name && !strcmp(e->name, "IMMEDIATE"));
+			int is_imm_b = (e2->name && !strcmp(e2->name, "IMMEDIATE"));
+
+			if (is_imm_a && is_imm_b)
 			{
-				float v1 = G_FLOAT(e->ofs);
-				float v2 = G_FLOAT(e2->ofs);
-				float result = 0;
-				int can_fold = 1;
+				int folded = 0;
 
-				if (!strcmp(op->name, "+")) result = v1 + v2;
-				else if (!strcmp(op->name, "-")) result = v1 - v2;
-				else if (!strcmp(op->name, "*")) result = v1 * v2;
-				else if (!strcmp(op->name, "/")) 
+				// 1. FLOAT op FLOAT
+				if (type_a == ev_float && type_b == ev_float)
 				{
-					if (v2 == 0) can_fold = 0; // TRAP AVOIDED: Division by zero!
-					else result = v1 / v2;
+					float v1 = G_FLOAT(e->ofs), v2 = G_FLOAT(e2->ofs), res = 0;
+					if (!strcmp(op->name, "+")) { res = v1 + v2; folded = 1; }
+					else if (!strcmp(op->name, "-")) { res = v1 - v2; folded = 1; }
+					else if (!strcmp(op->name, "*")) { res = v1 * v2; folded = 1; }
+					else if (!strcmp(op->name, "/")) {
+						if (v2 != 0) { res = v1 / v2; folded = 1; } // Trap avoided!
+					}
+					if (folded) e = PR_CreateImmediateFloat(res);
 				}
-				else can_fold = 0; // Not a basic math operation
+				// 2. VECTOR op VECTOR (Add / Subtract)
+				else if (type_a == ev_vector && type_b == ev_vector)
+				{
+					float *v1 = G_VECTOR(e->ofs), *v2 = G_VECTOR(e2->ofs);
+					if (!strcmp(op->name, "+")) {
+						e = PR_CreateImmediateVector(v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2]);
+						folded = 1;
+					}
+					else if (!strcmp(op->name, "-")) {
+						e = PR_CreateImmediateVector(v1[0]-v2[0], v1[1]-v2[1], v1[2]-v2[2]);
+						folded = 1;
+					}
+				}
+				// 3. VECTOR * FLOAT (Scaling)
+				else if (type_a == ev_vector && type_b == ev_float && !strcmp(op->name, "*"))
+				{
+					float *v1 = G_VECTOR(e->ofs);
+					float f2 = G_FLOAT(e2->ofs);
+					e = PR_CreateImmediateVector(v1[0]*f2, v1[1]*f2, v1[2]*f2);
+					folded = 1;
+				}
+				// 4. FLOAT * VECTOR (Scaling reversed)
+				else if (type_a == ev_float && type_b == ev_vector && !strcmp(op->name, "*"))
+				{
+					float f1 = G_FLOAT(e->ofs);
+					float *v2 = G_VECTOR(e2->ofs);
+					e = PR_CreateImmediateVector(f1*v2[0], f1*v2[1], f1*v2[2]);
+					folded = 1;
+				}
 
-				if (can_fold) 
-				{
-					// Safely create the new constant and replace the left side (e)
-					e = PR_CreateImmediateFloat(result);
-					
-					// Break out of the operator loop, completely bypassing PR_Statement!
-					break; 
-				}
+				if (folded) break; // Bypass PR_Statement completely!
 			}
 			// --- END CONSTANT FOLDING ---
 			
