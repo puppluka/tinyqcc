@@ -1012,11 +1012,10 @@ void PR_ParseDefs (void)
 					PR_Expect("{");
 					braces = 1;
 					while (braces > 0 && pr_token_type != tt_eof) {
-						PR_Lex();
 						if (pr_token[0] == '{') braces++;
 						if (pr_token[0] == '}') braces--;
+						PR_Lex();
 					}
-					PR_Lex();
 					continue; //bypass bytecode generation entirely
 				}
 				locals_start = locals_end = numpr_globals;
