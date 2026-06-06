@@ -1016,6 +1016,7 @@ void PR_ParseDefs (void)
 						if (pr_token[0] == '{') braces++;
 						if (pr_token[0] == '}') braces--;
 					}
+					PR_Lex();
 					continue; //bypass bytecode generation entirely
 				}
 				locals_start = locals_end = numpr_globals;
