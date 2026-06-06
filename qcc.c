@@ -1376,7 +1376,7 @@ void main (int argc, char **argv)
 		} while (1);
 
 		autoproto_pass = false;
-		printf("Initializing QuakeC Compilation Pass...");
+		printf("Initializing QuakeC Compilation Pass...\n\n");
 
 		src = src_start;
 	}

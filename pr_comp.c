@@ -882,6 +882,7 @@ If allocate is true, a new def will be allocated if it can't be found
 def_t *PR_GetDef (type_t *type, char *name, def_t *scope, boolean allocate)
 {
 	def_t		*def;
+	def_t		*best_global = NULL;
 	char element[MAX_NAME];
 
 // see if the name is already in use
@@ -890,12 +891,19 @@ def_t *PR_GetDef (type_t *type, char *name, def_t *scope, boolean allocate)
 		{
 			if ( def->scope && def->scope != scope)
 				continue;		// in a different function
-			
+
+			if (scope != NULL && def->scope == NULL) {
+				best_global = def;
+				continue;
+			}
+
 			if (type && def->type != type)
 				PR_ParseError ("Type mismatch on redeclaration of %s",name);
 			return def;
 		}
-	
+	if (best_global && !allocate)
+		return best_global;
+
 	if (!allocate)
 		return NULL;
 		
@@ -1012,8 +1020,10 @@ void PR_ParseDefs (void)
 					PR_Expect("{");
 					braces = 1;
 					while (braces > 0 && pr_token_type != tt_eof) {
-						if (pr_token[0] == '{') braces++;
-						if (pr_token[0] == '}') braces--;
+						if (pr_token_type == tt_punct) {
+							if (pr_token[0] == '{') braces++;
+							if (pr_token[0] == '}') braces--;
+						}
 						PR_Lex();
 					}
 					continue; //bypass bytecode generation entirely
