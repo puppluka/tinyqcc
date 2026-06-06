@@ -999,6 +999,11 @@ void PR_ParseDefs (void)
 				if (autoproto_pass)
 				{
 					int braces = 0;
+					if (PR_Check("#"))
+					{
+						PR_Lex(); // Eat the built-in immediate number
+						continue; // Done with this function prototype!
+					}
 					// skip state opcode if it exists [1, frames]
 					if (PR_Check("[")) {
 						while (!PR_Check("]")) PR_Lex();
