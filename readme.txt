@@ -1,18 +1,62 @@
+===========================================================================
+tinyQCC - Advanced QuakeC Compiler
+===========================================================================
 
-This is the last major component of the quake utilities to be released.  To be honest, I have been a little reticent to release this because most of the actual qc code is basically rather embarassing crap.  The time never became available to even give it a good top to bottom going over.  I never spent any quality engineering time on my parts, American wrote a lot of qc code, and even Romero has a bit of work in there.  It is a mess.  If you look through the code and occasionally think "This is stupid!", you are probably right...
+This is a modernized, heavily optimized fork of the original 1996 QuakeC 
+compiler. 
 
-The compiler itself can be drastically sped up by just replacing the symbol searches with binary trees or hashing.  We remotely compile on our alpha, so it hasn't been a big enough issue for me to do it, but as the code size grows and grows it will be done sooner or later.
+When John Carmack originally released qcc's source, he noted that the 
+QCC compiler was rushed, lacked quality engineering time, and generated 
+"horribly naive and space inefficient" bytecode. While the vanilla bytecode
+compiled at approximately 410.6 kilobytes, the same code ran through THIS
+compiler compiled at 366.3 kilobytes, and allows the engine to do less math
+and behind-the-scenes work, making the renderer a bit smoother in some cases.
 
-The resulting code is horribly nieve and space ineficient (twleve bytes / instruction).  If common subexpression removal was added, the instruction count could probably be cut nearly in half.  I would have liked to have done a better job at this, but this was my first compiler front end, and I had a ton of other things fighting for my time.  The next one will turn out better. (wow, I'm making a lot of excuses here, aren't I?)
+This updated compiler was built to fix that, amongst other various fixes.
+It's designed to be a lean utilitythat generates optimized progs.dat files 
+and remains 100% compatible with the PROG_VERSION 6 file specification.
+In short, it's dragging QCC kicking and screaming into the modern era,
+as far as efficiency and modern memory saving techniques are concerned.
 
-Qcc also performs some other maintenence functions for us, like rebuildinng all the brush models and making pak files, but those functions are only usefull if you have created all new data for everything.  models.qc and sprites.qc don't actually generate any code, they are just parsed by modelgen and spritegen and included for completeness.
+Major optimizations and features include:
+
+* String Deduplication: A string pool ensures that repeated string literals 
+  (like sound paths or classnames) are only written to the binary once, 
+  drastically reducing file size.
+* Constant Folding: Vector and float arithmetic on constants (e.g., '100 0 0' * 5) 
+  is evaluated at compile-time, saving the engine from calculating static math 
+  at runtime.
+* Dead Code Stripping: Unreferenced global variables and unused functions 
+  are aggressively stripped from the final metadata, creating a much leaner 
+  memory footprint for massive mods.
+* Control Flow Optimization: Jump threading and dead store elimination bypass 
+  redundant GOTO chains and clean up temporary compiler variables.
+* Auto-Prototyping: Running with the `-autoprotos` flag performs a pre-pass 
+  that automatically registers function signatures, eliminating the need to 
+  manually declare forward prototypes in defs.qc.
+
+---------------------------------------------------------------------------
+HOW TO USE QCC
+---------------------------------------------------------------------------
+To modify the Quake program code, set up a new game directory parallel with 
+id1, containing a "progs" subdirectory. 
+
+If you can download a copy of the Quake 1.06 QuakeC codebase, this is a great
+place to start analyzing and deconstructing what the game logic is handling.
+Updated user-managed forks of the codebase are more likely to have less errors.
+Copy all of your .qc files and your progs.src into that directory, and then 
+run qcc from there. It will compile the files listed in progs.src and (if there
+aren't any errors) generate a new progs.dat file in the parent directory
+(or wherever you have pathed the binary in progs.src).
+
+As a simple test, open the weapons.qc file, go to the ImpulseCommands function 
+towards the EOF, write a function or two to enact some game logic once executed,
+and tie those to an unused impulse number (up to 255) in the if statement list.
+As an example, if you tied a command to number 100, typing `impulse 100` into the
+console would then automatically execute the defined function exactly as written!
 
 
-To modify the quake program code, set up a new game directory parallel with id1, and containing a "progs" subdirectory.  Copy all the .qc files and progs.src into that, and just run qcc from that directory.  That will compile all of the files listed in progs.src and (if there aren't any errors) generate a new progs.dat file in the parent directory.
-
-As a simple test, open the client.qc file, go to the ClientObituary function at the end, and change some of the messages.
-
-The directory structure will look something like:
+The directory structure will look something like this:
 
 /quake/quake.exe
 /quake/id1/
@@ -22,14 +66,28 @@ The directory structure will look something like:
 /quake/mygame/progs/client.qc
 /quake/mygame/progs/... etc ...
 
-Run quake with "-game mygame", which will cause quake to look for data in the mygame directory before falling back to id1.  In this example, it will find the new progs.dat from mygame, and take everything else from id1.  You can type "path" at the quake console to verify the current search order of directories and pak files.  THIS WILL ONLY WORK WITH A REGISTERED VERSION OF QUAKE.
+Run your engine with "-game mygame", which will cause it to look for data 
+in the mygame directory before falling back to id1. In this example, it will 
+find the new progs.dat from mygame, and take everything else from id1. This
+allows mods to be packaged and self-contained without distributing duplicate
+or copyrighted assets.
 
-The header qcc.h has the language spec and some documentation, but I'm not positive if it is all current.
+---------------------------------------------------------------------------
+DOCUMENTATION
+---------------------------------------------------------------------------
+The header `qcc.h` contains the language spec and underlying data structures.
+The only true documentation for the various builtin engine functions is the 
+source code used by the engine itself (see builtin.c). Some of them are 
+required to do things outside the scope of the QCVM, and some are just 
+there for speed reasons.
 
-The only documentation for the various builtin functions I can offer is the source code used by quake. See builtin.c. Some of them are required to do things outside the scope of the qc world, and some are just there for speed reasons.
+Internal Testing Specifications:
+- Lenovo 80UD
+- Arch Linux
+- DOSBox 0.74-3
+- Default DOSBox.conf
 
-PLEASE don't ask me questions about all this!
+Happy compiling!
 
-
-John Carmack
-
+Pup Luka
+Aerox Software
