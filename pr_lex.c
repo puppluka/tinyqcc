@@ -1,22 +1,15 @@
-/*  Copyright (C) 1996-1997  Id Software, Inc.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-    See file, 'COPYING', for details.
+/*
+==============================================================================
+FILE: pr_lex.c
+DESCRIPTION: 
+The lexical analyzer (tokenizer) for the QuakeC compiler. It reads the raw .qc 
+source files character by character, discarding whitespace and comments, and 
+converts the raw text into a structured stream of actionable tokens. It 
+classifies keywords, identifiers, punctuation, and parses immediate values 
+(strings, floats, vectors), feeding this sanitized token stream directly to 
+the syntax evaluator in pr_comp.c.
+==============================================================================
 */
-
 #include "qcc.h"
 
 int			pr_source_line;

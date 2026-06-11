@@ -1,22 +1,17 @@
-/*  Copyright (C) 1996-1997  Id Software, Inc.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-    See file, 'COPYING', for details.
+/*
+==============================================================================
+FILE: qcc.c
+DESCRIPTION: 
+The main entry point and master controller for the QuakeC compiler. This file 
+manages the overarching compilation pipeline: it parses command-line arguments, 
+handles file I/O operations (reading progs.src and writing progs.dat), and 
+orchestrates the multi-pass compilation process. It initiates the newly 
+integrated auto-prototyping pre-pass, drives the main token parsing loop, and 
+executes post-parse optimizations—such as branch simplification, jump threading, 
+and dead function stripping—before finally packing the compressed bytecode into 
+the target binary.
+==============================================================================
 */
-
 #include "qcc.h"
 
 
@@ -72,8 +67,7 @@ void BspModels (void)
 	char	name[256];
 
 	p = CheckParm ("-bspmodels");
-	if (!p)
-		return;
+	if (!p) return;
 	if (p == myargc-1)
 		Error ("-bspmodels must preceed a game directory");
 	gamedir = myargv[p+1];
