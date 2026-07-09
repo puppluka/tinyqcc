@@ -1,5 +1,6 @@
+# Compiles w/ CC, GCC, or TCC
 CC = cc
-CFLAGS = -O2 -g -Wall -std=gnu89 -Wno-return-type
+CFLAGS = -O2 -g -Wall -std=c99 -Wno-return-type
 OBJS = qcc.o pr_lex.o pr_comp.o cmdlib.o
 
 # Windows Detection

@@ -40,7 +40,7 @@ Key optimizations and features include:
   Can be helpful for testing if a codebase is broken before the final build.
 * TCC Compatibility: While started with GCC as a compilation toolchain, as of
   now it should also properly compile within TCC as well, which I THINK means
-  more of a standard ISO C compliance (correct me if i'm wrong)
+  more of a standard ANSI C compliance (correct me if i'm wrong)
 ---------------------------------------------------------------------------
 HOW TO USE QCC
 ---------------------------------------------------------------------------
@@ -82,9 +82,8 @@ DOCUMENTATION
 ---------------------------------------------------------------------------
 The header `qcc.h` contains the language spec and underlying data structures.
 The only q_true documentation for the various builtin engine functions is the 
-source code used by the engine itself (see builtin.c). Some of them are 
-required to do things outside the scope of the QCVM, and some are just 
-there for speed reasons.
+source code used by the engine itself. Some of them are required to do things
+outside the scope of the QCVM, and some are just there for speed reasons.
 
 Internal Testing Specifications:
 - Lenovo 80UD
