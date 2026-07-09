@@ -410,6 +410,11 @@ extern	def_t	def_ret, def_parms[MAX_PARMS];
 #define	MAX_FILES		1024
 #define	MAX_DATA_PATH	64
 
+char *PR_GlobalString (gofs_t ofs);
+char *PR_GlobalStringNoContents (gofs_t ofs);
+void PR_PrintStatementFile (dstatement_t *s, FILE *f);
+void WriteAssemblyListing(char *filename);
+
 extern	char		strings[MAX_STRINGS];
 extern	int			strofs;
 

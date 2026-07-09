@@ -51,6 +51,85 @@ boolean		autoproto_pass = q_false;
 boolean		test_compile = q_false;
 
 /*
+================
+PR_PrintStatementFile
+Helper to print a statement to a FILE pointer instead of stdout.
+================
+*/
+void PR_PrintStatementFile (dstatement_t *s, FILE *f)
+{
+    fprintf(f, "%4i : %4i : %s ", (int)(s - statements), statement_linenums[s-statements], pr_opcodes[s->op].opname);
+    
+    // Formatting: padding to align operands
+    int i = strlen(pr_opcodes[s->op].opname);
+    for ( ; i < 10 ; i++) fprintf(f, " ");
+        
+    if (s->op == OP_IF || s->op == OP_IFNOT)
+        fprintf(f, "%sbranch %i", PR_GlobalString(s->a), s->b);
+    else if (s->op == OP_GOTO)
+        fprintf(f, "branch %i", s->a);
+    else if ((unsigned)(s->op - OP_STORE_F) < 6) {
+        fprintf(f, "%s", PR_GlobalString(s->a));
+        fprintf(f, "%s", PR_GlobalStringNoContents(s->b));
+    } else {
+        if (s->a) fprintf(f, "%s", PR_GlobalString(s->a));
+        if (s->b) fprintf(f, "%s", PR_GlobalString(s->b));
+        if (s->c) fprintf(f, "%s", PR_GlobalStringNoContents(s->c));
+    }
+    fprintf(f, "\n");
+}
+
+/*
+================
+WriteAssemblyListing
+Generates a complete readable bytecode dump for all functions.
+================
+*/
+void WriteAssemblyListing(char *filename)
+{
+    int i;
+    dstatement_t *ds;
+    dfunction_t *df;
+    FILE *f = fopen(filename, "w");
+
+    if (!f) Error("Could not open assembly listing file: %s", filename);
+
+    fprintf(f, "QuakeC Bytecode Listing\n");
+    fprintf(f, "========================\n\n");
+
+    // Loop through all functions, starting at 1 (0 is the null/empty function)
+    for (i = 1; i < numfunctions; i++)
+    {
+        df = &functions[i];
+        
+        fprintf(f, "Function: %s\n", strings + df->s_name);
+        fprintf(f, "  Source File: %s\n", strings + df->s_file);
+        fprintf(f, "  Parameters: %i\n", df->numparms);
+        fprintf(f, "  Locals: %i\n", df->locals);
+        fprintf(f, "--------------------------------------------------\n");
+
+        // If the function is a built-in (negative first_statement), skip bytecode dump
+        if (df->first_statement < 0) {
+            fprintf(f, "  [Built-in Function #%i]\n\n", -df->first_statement);
+            continue;
+        }
+
+        // Iterate through statements until the terminating OP_DONE
+        ds = statements + df->first_statement;
+        while (1)
+        {
+            PR_PrintStatementFile(ds, f);
+            if (ds->op == OP_DONE) break; 
+            ds++;
+        }
+        fprintf(f, "\n");
+    }
+
+    fclose(f);
+    printf("Assembly listing successfully written to %s\n", filename);
+}
+
+/*
 =================
 BspModels
 
@@ -69,7 +148,7 @@ void BspModels (void)
 	p = CheckParm ("-bspmodels");
 	if (!p) return;
 	if (p == myargc-1)
-		Error ("-bspmodels must preceed a game directory");
+		Error ("BSPModels: must preceed a game directory");
 	gamedir = myargv[p+1];
 	
 	for (i=0 ; i<nummodels ; i++)
@@ -1289,8 +1368,8 @@ void main (int argc, char **argv)
 
 	printf ("***********************************\n");
 	printf ("\tTinyQCC Compiler\n");
-	printf ("***********************************\n\n");
-	printf ("by Pup Luka - v0.21\n\n");
+	printf ("***********************************\n");
+	printf ("by Pup Luka - v0.25\n\n");
 
 	if ( CheckParm ("-?") || CheckParm ("-help") )
 	{
@@ -1299,8 +1378,8 @@ void main (int argc, char **argv)
 		printf ("to build a clean data tree: qcc -copy <srcdir> <destdir>\n");
 		printf ("to build a clean pak file: qcc -pak <srcdir> <packfile>\n");
 		printf ("to bsp all bmodels: qcc -bspmodels <gamedir>\n");
-		printf ("to enable autoprototyping: qcc -autoprotos <gamedir>");
-		printf ("to run a syntax & compilation build test: qcc -test <gamedir>\n");
+		printf ("to enable autoprototyping: qcc -autoprotos <gamedir>\n");
+		printf ("to run the compiler with no output file: qcc -test <gamedir>\n");
 		return;
 	}
 
@@ -1385,6 +1464,18 @@ void main (int argc, char **argv)
 	// run post-parse optimizations
 	OptimizeControlFlow();
 	OptimizeCallGraph();
+
+	p = CheckParm("-S");
+	if (p) {
+		if (p < myargc - 1 && myargv[p+1][0] != '-')
+			WriteAssemblyListing(myargv[p+1]);
+		else
+			WriteAssemblyListing("progs.qbc");
+
+		printf("Bytecode ASCII file successfully compiled. Exiting...");
+		return;
+	}
+
 	// write data file
 	WriteData (crc);
 	// regenerate bmodels if -bspmodels
