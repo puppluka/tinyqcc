@@ -92,10 +92,10 @@ void PR_NewLine (void)
 	if (*pr_file_p == '\n')
 	{
 		pr_file_p++;
-		m = true;
+		m = q_true;
 	}
 	else
-		m = false;
+		m = q_false;
 
 	pr_source_line++;
 	pr_line_start = pr_file_p;
@@ -335,7 +335,7 @@ void PR_FindMacro (void)
 	PR_ParseError ("Unknown frame macro $%s", pr_token);
 }
 
-// just parses text, returning false if an eol is reached
+// just parses text, returning q_false if an eol is reached
 boolean PR_SimpleGetToken (void)
 {
 	int		c;
@@ -345,7 +345,7 @@ boolean PR_SimpleGetToken (void)
 	while ( (c = *pr_file_p) <= ' ')
 	{
 		if (c=='\n' || c == 0)
-			return false;
+			return q_false;
 		pr_file_p++;
 	}
 	
@@ -357,7 +357,7 @@ boolean PR_SimpleGetToken (void)
 		pr_file_p++;
 	}
 	pr_token[i] = 0;
-	return true;
+	return q_true;
 }
 
 void PR_ParseFrame (void)
@@ -520,17 +520,17 @@ void PR_Expect (char *string)
 =============
 PR_Check
 
-Returns true and gets the next token if the current token equals string
-Returns false and does nothing otherwise
+Returns q_true and gets the next token if the current token equals string
+Returns q_false and does nothing otherwise
 =============
 */
 boolean PR_Check (char *string)
 {
 	if (strcmp (string, pr_token))
-		return false;
+		return q_false;
 		
 	PR_Lex ();
-	return true;
+	return q_true;
 }
 
 /*

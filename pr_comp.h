@@ -15,7 +15,6 @@ typedef int	string_t;
 
 typedef enum {ev_void, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_function, ev_pointer} etype_t;
 
-
 #define	OFS_NULL		0
 #define	OFS_RETURN		1
 #define	OFS_PARM0		4		// leave 3 ofs for each parm to hold vectors
@@ -27,7 +26,6 @@ typedef enum {ev_void, ev_string, ev_float, ev_vector, ev_entity, ev_field, ev_f
 #define	OFS_PARM6		22
 #define	OFS_PARM7		25
 #define	RESERVED_OFS	28
-
 
 enum {
 	OP_DONE,
@@ -107,7 +105,6 @@ enum {
 	OP_BITOR
 };
 
-
 typedef struct statement_s
 {
 	unsigned short	op;
@@ -139,7 +136,6 @@ typedef struct
 	int		numparms;
 	byte	parm_size[MAX_PARMS];
 } dfunction_t;
-
 
 #define	PROG_VERSION	6
 typedef struct

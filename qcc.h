@@ -242,12 +242,12 @@ typedef struct type_s
 
 typedef struct def_s
 {
-	type_t		*type;
-	char		*name;
+	type_t			*type;
+	char			*name;
 	struct def_s	*next;
-	gofs_t		ofs;
-	struct def_s	*scope;		// function the var was defined in, or NULL
-	int			initialized;	// 1 when a declaration included "= immediate"
+	gofs_t			ofs;
+	struct def_s	*scope;			// function the var was defined in, or NULL
+	int				initialized;	// 1 when a declaration included "= immediate"
 } def_t;
 
 //============================================================================
@@ -255,9 +255,7 @@ typedef struct def_s
 // pr_loc.h -- program local defs
 
 #define	MAX_ERRORS		10
-
-#define	MAX_NAME		64		// chars long
-
+#define	MAX_NAME		64			// chars long
 #define	MAX_REGS		16384
 
 //=============================================================================
@@ -320,7 +318,7 @@ typedef struct
 //============================================================================
 
 
-extern	opcode_t	pr_opcodes[99];		// sized by initialization
+extern	opcode_t	pr_opcodes[];		// sized by initialization
 
 extern	boolean	pr_dumpasm;
 extern  boolean autoproto_pass;
@@ -412,8 +410,8 @@ extern	def_t	def_ret, def_parms[MAX_PARMS];
 #define	MAX_FILES		1024
 #define	MAX_DATA_PATH	64
 
-extern	char	strings[MAX_STRINGS];
-extern	int		strofs;
+extern	char		strings[MAX_STRINGS];
+extern	int			strofs;
 
 extern	dstatement_t	statements[MAX_STATEMENTS];
 extern	int			numstatements;
@@ -440,5 +438,3 @@ extern	int			precache_files_block[MAX_SOUNDS];
 extern	int			numfiles;
 
 int	CopyString (char *str);
-
-

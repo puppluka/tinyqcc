@@ -28,7 +28,7 @@ across different CPU architectures.
 
 #ifndef __BYTEBOOL__
 #define __BYTEBOOL__
-typedef enum {false, true} boolean;
+typedef enum {q_false, q_true} boolean;
 typedef unsigned char byte;
 #endif
 
@@ -42,10 +42,9 @@ extern char **myargv;
 
 char *strupr (char *in);
 char *strlower (char *in);
-#ifndef __MINGW32__
-int filelength (int handle);
-int tell (int handle);
-#endif
+
+int Q_filelength (int handle);
+int Q_tell (int handle);
 
 double I_FloatTime (void);
 

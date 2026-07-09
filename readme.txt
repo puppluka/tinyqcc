@@ -7,18 +7,19 @@ compiler.
 
 When John Carmack originally released qcc's source, he noted that the 
 QCC compiler was rushed, lacked quality engineering time, and generated 
-"horribly naive and space inefficient" bytecode. While the vanilla bytecode
-compiled at approximately 410.6 kilobytes, the same code ran through THIS
-compiler compiled at 366.3 kilobytes, and allows the engine to do less math
-and behind-the-scenes work, making the renderer a bit smoother in some cases.
+"horribly naive and space inefficient" bytecode. This compiler fork was built
+to fix that, amongst other various improvements for simplicity and efficiency.
 
-This updated compiler was built to fix that, amongst other various fixes.
-It's designed to be a lean utilitythat generates optimized progs.dat files 
+It's designed to be a lean utility that generates optimized progs.dat files 
 and remains 100% compatible with the PROG_VERSION 6 file specification.
-In short, it's dragging QCC kicking and screaming into the modern era,
-as far as efficiency and modern memory saving techniques are concerned.
+While the vanilla bytecode compiled at approximately 410.6 kilobytes, the
+same code ran through THIS compiler compiled at 366.3 kilobytes, and allows
+the engine to do less math and behind-the-scenes work, making the renderer
+a bit smoother in some cases. In short, it's dragging QCC kicking and screaming
+into the modern era, as far as efficiency and modern memory saving techniques
+are concerned.
 
-Major optimizations and features include:
+Key optimizations and features include:
 
 * String Deduplication: A string pool ensures that repeated string literals 
   (like sound paths or classnames) are only written to the binary once, 
@@ -34,14 +35,19 @@ Major optimizations and features include:
 * Auto-Prototyping: Running with the `-autoprotos` flag performs a pre-pass 
   that automatically registers function signatures, eliminating the need to 
   manually declare forward prototypes in defs.qc.
-
+* Test Compiles: Running with the `-test' flag will run through the compilation
+  process of your code, but not produce any header or bytecode output files.
+  Can be helpful for testing if a codebase is broken before the final build.
+* TCC Compatibility: While started with GCC as a compilation toolchain, as of
+  now it should also properly compile within TCC as well, which I THINK means
+  more of a standard ISO C compliance (correct me if i'm wrong)
 ---------------------------------------------------------------------------
 HOW TO USE QCC
 ---------------------------------------------------------------------------
 To modify the Quake program code, set up a new game directory parallel with 
 id1, containing a "progs" subdirectory. 
 
-If you can download a copy of the Quake 1.06 QuakeC codebase, this is a great
+If you download a copy of the Quake 1.06 QuakeC codebase, this is a great
 place to start analyzing and deconstructing what the game logic is handling.
 Updated user-managed forks of the codebase are more likely to have less errors.
 Copy all of your .qc files and your progs.src into that directory, and then 
@@ -54,7 +60,6 @@ towards the EOF, write a function or two to enact some game logic once executed,
 and tie those to an unused impulse number (up to 255) in the if statement list.
 As an example, if you tied a command to number 100, typing `impulse 100` into the
 console would then automatically execute the defined function exactly as written!
-
 
 The directory structure will look something like this:
 
@@ -76,7 +81,7 @@ or copyrighted assets.
 DOCUMENTATION
 ---------------------------------------------------------------------------
 The header `qcc.h` contains the language spec and underlying data structures.
-The only true documentation for the various builtin engine functions is the 
+The only q_true documentation for the various builtin engine functions is the 
 source code used by the engine itself (see builtin.c). Some of them are 
 required to do things outside the scope of the QCVM, and some are just 
 there for speed reasons.

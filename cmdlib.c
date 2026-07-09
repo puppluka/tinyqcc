@@ -7,11 +7,12 @@ compiler's operation. It provides low-level file system I/O, safe memory
 allocation, string manipulation, and command-line parsing routines. Crucially, 
 it handles endianness conversion (byte-swapping) to ensure that the compiled 
 progs.dat files are correctly formatted for the target architecture, maintaining 
-compatibility with the original Quake engine standards.
+compatibility with the original Quake engine standards (PROG_VERSION 6).
 ==============================================================================
 */
 #include "cmdlib.h"
 #include <sys/time.h>
+#include <time.h>
 #define PATHSEPERATOR   '/'
 
 // set these before calling CheckParm
@@ -28,21 +29,15 @@ I_FloatTime
 */
 double I_FloatTime (void)
 {
-	struct timeval tp;
-	struct timezone tzp;
-	static int		secbase;
-
-	gettimeofday(&tp, &tzp);
+	static clock_t start_clock = 0;
 	
-	if (!secbase)
-	{
-		secbase = tp.tv_sec;
-		return tp.tv_usec/1000000.0;
+	if(start_clock == 0) {
+		start_clock = clock();
+		return 0.0;
 	}
-	
-	return (tp.tv_sec - secbase) + tp.tv_usec/1000000.0;
-}
 
+	return (double)(clock() - start_clock) / (double)CLOCKS_PER_SEC;
+}
 
 /*
 ==============
@@ -68,7 +63,7 @@ skipwhite:
 	{
 		if (c == 0)
 		{
-			com_eof = true;
+			com_eof = q_true;
 			return NULL;			// end of file;
 		}
 		data++;
@@ -126,13 +121,12 @@ skipwhite:
 
 
 
-#ifndef __MINGW32__
 /*
 ================
-filelength
+Q_filelength
 ================
 */
-int filelength (int handle)
+int Q_filelength (int handle)
 {
 	struct stat	fileinfo;
     
@@ -144,11 +138,10 @@ int filelength (int handle)
 	return fileinfo.st_size;
 }
 
-int tell (int handle)
+int Q_tell (int handle)
 {
 	return lseek (handle, 0, SEEK_CUR);
 }
-#endif
 
 char *strupr (char *start)
 {
@@ -297,7 +290,7 @@ long    LoadFile (char *filename, void **bufferptr)
 	void    *buffer;
 
 	handle = SafeOpenRead (filename);
-	length = filelength (handle);
+	length = Q_filelength (handle);
 	buffer = SafeMalloc (length+1);
 	((byte *)buffer)[length] = 0;
 	SafeRead (handle, buffer, length);

@@ -35,92 +35,92 @@ void PR_ParseDefs (void);
 
 opcode_t pr_opcodes[] =
 {
- {"<DONE>", "DONE", -1, false, &def_entity, &def_field, &def_void},
+ {"<DONE>", "DONE", -1, q_false, &def_entity, &def_field, &def_void},
 
- {"*", "MUL_F", 2, false, &def_float, &def_float, &def_float},
- {"*", "MUL_V", 2, false, &def_vector, &def_vector, &def_float},
- {"*", "MUL_FV", 2, false, &def_float, &def_vector, &def_vector},
- {"*", "MUL_VF", 2, false, &def_vector, &def_float, &def_vector},
+ {"*", "MUL_F", 2, q_false, &def_float, &def_float, &def_float},
+ {"*", "MUL_V", 2, q_false, &def_vector, &def_vector, &def_float},
+ {"*", "MUL_FV", 2, q_false, &def_float, &def_vector, &def_vector},
+ {"*", "MUL_VF", 2, q_false, &def_vector, &def_float, &def_vector},
  
- {"/", "DIV", 2, false, &def_float, &def_float, &def_float},
+ {"/", "DIV", 2, q_false, &def_float, &def_float, &def_float},
 
- {"+", "ADD_F", 3, false, &def_float, &def_float, &def_float},
- {"+", "ADD_V", 3, false, &def_vector, &def_vector, &def_vector},
+ {"+", "ADD_F", 3, q_false, &def_float, &def_float, &def_float},
+ {"+", "ADD_V", 3, q_false, &def_vector, &def_vector, &def_vector},
   
- {"-", "SUB_F", 3, false, &def_float, &def_float, &def_float},
- {"-", "SUB_V", 3, false, &def_vector, &def_vector, &def_vector},
+ {"-", "SUB_F", 3, q_false, &def_float, &def_float, &def_float},
+ {"-", "SUB_V", 3, q_false, &def_vector, &def_vector, &def_vector},
 
- {"==", "EQ_F", 4, false, &def_float, &def_float, &def_float},
- {"==", "EQ_V", 4, false, &def_vector, &def_vector, &def_float},
- {"==", "EQ_S", 4, false, &def_string, &def_string, &def_float},
- {"==", "EQ_E", 4, false, &def_entity, &def_entity, &def_float},
- {"==", "EQ_FNC", 4, false, &def_function, &def_function, &def_float},
+ {"==", "EQ_F", 4, q_false, &def_float, &def_float, &def_float},
+ {"==", "EQ_V", 4, q_false, &def_vector, &def_vector, &def_float},
+ {"==", "EQ_S", 4, q_false, &def_string, &def_string, &def_float},
+ {"==", "EQ_E", 4, q_false, &def_entity, &def_entity, &def_float},
+ {"==", "EQ_FNC", 4, q_false, &def_function, &def_function, &def_float},
  
- {"!=", "NE_F", 4, false, &def_float, &def_float, &def_float},
- {"!=", "NE_V", 4, false, &def_vector, &def_vector, &def_float},
- {"!=", "NE_S", 4, false, &def_string, &def_string, &def_float},
- {"!=", "NE_E", 4, false, &def_entity, &def_entity, &def_float},
- {"!=", "NE_FNC", 4, false, &def_function, &def_function, &def_float},
+ {"!=", "NE_F", 4, q_false, &def_float, &def_float, &def_float},
+ {"!=", "NE_V", 4, q_false, &def_vector, &def_vector, &def_float},
+ {"!=", "NE_S", 4, q_false, &def_string, &def_string, &def_float},
+ {"!=", "NE_E", 4, q_false, &def_entity, &def_entity, &def_float},
+ {"!=", "NE_FNC", 4, q_false, &def_function, &def_function, &def_float},
  
- {"<=", "LE", 4, false, &def_float, &def_float, &def_float},
- {">=", "GE", 4, false, &def_float, &def_float, &def_float},
- {"<", "LT", 4, false, &def_float, &def_float, &def_float},
- {">", "GT", 4, false, &def_float, &def_float, &def_float},
+ {"<=", "LE", 4, q_false, &def_float, &def_float, &def_float},
+ {">=", "GE", 4, q_false, &def_float, &def_float, &def_float},
+ {"<", "LT", 4, q_false, &def_float, &def_float, &def_float},
+ {">", "GT", 4, q_false, &def_float, &def_float, &def_float},
 
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_float},
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_vector},
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_string},
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_entity},
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_field},
- {".", "INDIRECT", 1, false, &def_entity, &def_field, &def_function},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_float},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_vector},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_string},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_entity},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_field},
+ {".", "INDIRECT", 1, q_false, &def_entity, &def_field, &def_function},
 
- {".", "ADDRESS", 1, false, &def_entity, &def_field, &def_pointer},
+ {".", "ADDRESS", 1, q_false, &def_entity, &def_field, &def_pointer},
 
- {"=", "STORE_F", 5, true, &def_float, &def_float, &def_float},
- {"=", "STORE_V", 5, true, &def_vector, &def_vector, &def_vector},
- {"=", "STORE_S", 5, true, &def_string, &def_string, &def_string},
- {"=", "STORE_ENT", 5, true, &def_entity, &def_entity, &def_entity},
- {"=", "STORE_FLD", 5, true, &def_field, &def_field, &def_field},
- {"=", "STORE_FNC", 5, true, &def_function, &def_function, &def_function},
+ {"=", "STORE_F", 5, q_true, &def_float, &def_float, &def_float},
+ {"=", "STORE_V", 5, q_true, &def_vector, &def_vector, &def_vector},
+ {"=", "STORE_S", 5, q_true, &def_string, &def_string, &def_string},
+ {"=", "STORE_ENT", 5, q_true, &def_entity, &def_entity, &def_entity},
+ {"=", "STORE_FLD", 5, q_true, &def_field, &def_field, &def_field},
+ {"=", "STORE_FNC", 5, q_true, &def_function, &def_function, &def_function},
 
- {"=", "STOREP_F", 5, true, &def_pointer, &def_float, &def_float},
- {"=", "STOREP_V", 5, true, &def_pointer, &def_vector, &def_vector},
- {"=", "STOREP_S", 5, true, &def_pointer, &def_string, &def_string},
- {"=", "STOREP_ENT", 5, true, &def_pointer, &def_entity, &def_entity},
- {"=", "STOREP_FLD", 5, true, &def_pointer, &def_field, &def_field},
- {"=", "STOREP_FNC", 5, true, &def_pointer, &def_function, &def_function},
+ {"=", "STOREP_F", 5, q_true, &def_pointer, &def_float, &def_float},
+ {"=", "STOREP_V", 5, q_true, &def_pointer, &def_vector, &def_vector},
+ {"=", "STOREP_S", 5, q_true, &def_pointer, &def_string, &def_string},
+ {"=", "STOREP_ENT", 5, q_true, &def_pointer, &def_entity, &def_entity},
+ {"=", "STOREP_FLD", 5, q_true, &def_pointer, &def_field, &def_field},
+ {"=", "STOREP_FNC", 5, q_true, &def_pointer, &def_function, &def_function},
 
- {"<RETURN>", "RETURN", -1, false, &def_void, &def_void, &def_void},
+ {"<RETURN>", "RETURN", -1, q_false, &def_void, &def_void, &def_void},
   
- {"!", "NOT_F", -1, false, &def_float, &def_void, &def_float},
- {"!", "NOT_V", -1, false, &def_vector, &def_void, &def_float},
- {"!", "NOT_S", -1, false, &def_vector, &def_void, &def_float},
- {"!", "NOT_ENT", -1, false, &def_entity, &def_void, &def_float},
- {"!", "NOT_FNC", -1, false, &def_function, &def_void, &def_float},
+ {"!", "NOT_F", -1, q_false, &def_float, &def_void, &def_float},
+ {"!", "NOT_V", -1, q_false, &def_vector, &def_void, &def_float},
+ {"!", "NOT_S", -1, q_false, &def_vector, &def_void, &def_float},
+ {"!", "NOT_ENT", -1, q_false, &def_entity, &def_void, &def_float},
+ {"!", "NOT_FNC", -1, q_false, &def_function, &def_void, &def_float},
   
-  {"<IF>", "IF", -1, false, &def_float, &def_float, &def_void},
-  {"<IFNOT>", "IFNOT", -1, false, &def_float, &def_float, &def_void},
+  {"<IF>", "IF", -1, q_false, &def_float, &def_float, &def_void},
+  {"<IFNOT>", "IFNOT", -1, q_false, &def_float, &def_float, &def_void},
   
 // calls returns REG_RETURN
- {"<CALL0>", "CALL0", -1, false, &def_function, &def_void, &def_void},
- {"<CALL1>", "CALL1", -1, false, &def_function, &def_void, &def_void},
- {"<CALL2>", "CALL2", -1, false, &def_function, &def_void, &def_void}, 
- {"<CALL3>", "CALL3", -1, false, &def_function, &def_void, &def_void}, 
- {"<CALL4>", "CALL4", -1, false, &def_function, &def_void, &def_void},
- {"<CALL5>", "CALL5", -1, false, &def_function, &def_void, &def_void},
- {"<CALL6>", "CALL6", -1, false, &def_function, &def_void, &def_void},
- {"<CALL7>", "CALL7", -1, false, &def_function, &def_void, &def_void},
- {"<CALL8>", "CALL8", -1, false, &def_function, &def_void, &def_void},
+ {"<CALL0>", "CALL0", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL1>", "CALL1", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL2>", "CALL2", -1, q_false, &def_function, &def_void, &def_void}, 
+ {"<CALL3>", "CALL3", -1, q_false, &def_function, &def_void, &def_void}, 
+ {"<CALL4>", "CALL4", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL5>", "CALL5", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL6>", "CALL6", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL7>", "CALL7", -1, q_false, &def_function, &def_void, &def_void},
+ {"<CALL8>", "CALL8", -1, q_false, &def_function, &def_void, &def_void},
   
- {"<STATE>", "STATE", -1, false, &def_float, &def_float, &def_void},
+ {"<STATE>", "STATE", -1, q_false, &def_float, &def_float, &def_void},
   
- {"<GOTO>", "GOTO", -1, false, &def_float, &def_void, &def_void},
+ {"<GOTO>", "GOTO", -1, q_false, &def_float, &def_void, &def_void},
   
- {"&&", "AND", 6, false, &def_float, &def_float, &def_float},
- {"||", "OR", 6, false, &def_float, &def_float, &def_float},
+ {"&&", "AND", 6, q_false, &def_float, &def_float, &def_float},
+ {"||", "OR", 6, q_false, &def_float, &def_float, &def_float},
 
- {"&", "BITAND", 2, false, &def_float, &def_float, &def_float},
- {"|", "BITOR", 2, false, &def_float, &def_float, &def_float},
+ {"&", "BITAND", 2, q_false, &def_float, &def_float, &def_float},
+ {"|", "BITOR", 2, q_false, &def_float, &def_float, &def_float},
 
  {NULL}
 };
@@ -390,7 +390,7 @@ def_t	*PR_ParseValue (void)
 	name = PR_ParseName ();
 	
 // look through the defs
-	d = PR_GetDef (NULL, name, pr_scope, false);
+	d = PR_GetDef (NULL, name, pr_scope, q_false);
 	if (!d)
 		PR_ParseError ("Unknown value \"%s\"", name);	
 	return d;
@@ -794,7 +794,7 @@ void PR_ParseState (void)
 	PR_Expect (",");
 
 	name = PR_ParseName ();
-	def = PR_GetDef (&type_function, name,0, true);
+	def = PR_GetDef (&type_function, name,0, q_true);
 		
 	PR_Expect ("]");
 	
@@ -836,7 +836,7 @@ function_t *PR_ParseImmediateStatements (type_t *type)
 //
 	for (i=0 ; i<type->num_parms ; i++)
 	{
-		defs[i] = PR_GetDef (type->parm_types[i], pr_parm_names[i], pr_scope, true);
+		defs[i] = PR_GetDef (type->parm_types[i], pr_parm_names[i], pr_scope, q_true);
 		f->parm_ofs[i] = defs[i]->ofs;
 		if (i > 0 && f->parm_ofs[i] < f->parm_ofs[i-1])
 			Error ("bad parm order");
@@ -870,7 +870,7 @@ function_t *PR_ParseImmediateStatements (type_t *type)
 PR_GetDef
 
 If type is NULL, it will match any type
-If allocate is true, a new def will be allocated if it can't be found
+If allocate is q_true, a new def will be allocated if it can't be found
 ============
 */
 def_t *PR_GetDef (type_t *type, char *name, def_t *scope, boolean allocate)
@@ -924,13 +924,13 @@ def_t *PR_GetDef (type_t *type, char *name, def_t *scope, boolean allocate)
 	if (type->type == ev_vector)
 	{		
 		sprintf (element, "%s_x",name);
-		PR_GetDef (&type_float, element, scope, true);
+		PR_GetDef (&type_float, element, scope, q_true);
 		
 		sprintf (element, "%s_y",name);
-		PR_GetDef (&type_float, element, scope, true);
+		PR_GetDef (&type_float, element, scope, q_true);
 		
 		sprintf (element, "%s_z",name);
-		PR_GetDef (&type_float, element, scope, true);
+		PR_GetDef (&type_float, element, scope, q_true);
 	}
 	else
 		numpr_globals += type_size[type->type];
@@ -942,13 +942,13 @@ def_t *PR_GetDef (type_t *type, char *name, def_t *scope, boolean allocate)
 		if (type->aux_type->type == ev_vector)
 		{
 			sprintf (element, "%s_x",name);
-			PR_GetDef (&type_floatfield, element, scope, true);
+			PR_GetDef (&type_floatfield, element, scope, q_true);
 			
 			sprintf (element, "%s_y",name);
-			PR_GetDef (&type_floatfield, element, scope, true);
+			PR_GetDef (&type_floatfield, element, scope, q_true);
 			
 			sprintf (element, "%s_z",name);
-			PR_GetDef (&type_floatfield, element, scope, true);
+			PR_GetDef (&type_floatfield, element, scope, q_true);
 		}
 		else
 			pr.size_fields += type_size[type->aux_type->type];
@@ -986,12 +986,12 @@ void PR_ParseDefs (void)
 	{
 		name = PR_ParseName ();
 
-		def = PR_GetDef (type, name, pr_scope, true);
+		def = PR_GetDef (type, name, pr_scope, q_true);
 		
 		// check for an initialization
 		if ( PR_Check ("=") )
 		{
-			// prevent false 'redeclared' errors during pass2
+			// prevent q_false 'redeclared' errors during pass2
 			if (def->initialized && !autoproto_pass)
 				PR_ParseError ("%s redeclared", name);
 	
@@ -1097,10 +1097,10 @@ boolean	PR_CompileFile (char *string, char *filename)
 		if (setjmp(pr_parse_abort))
 		{
 			if (++pr_error_count > MAX_ERRORS)
-				return false;
+				return q_false;
 			PR_SkipToSemicolon ();
 			if (pr_token_type == tt_eof)
-				return false;		
+				return q_false;		
 		}
 
 		pr_scope = NULL;	// outside all functions
