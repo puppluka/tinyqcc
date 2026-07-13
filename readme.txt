@@ -41,6 +41,11 @@ Key optimizations and features include:
 * TCC Compatibility: While started with GCC as a compilation toolchain, as of
   now it should also properly compile within TCC as well, which I THINK means
   more of a standard ANSI C compliance (correct me if i'm wrong)
+* ASCII Bytecode Output file: Running with the `-S` flag and optionally
+  specifying an output file will compile out a text file with all the opcode
+  conversions with some helpful formatting and labeling to see exactly how
+  the code goes from QuakeC to bytecode the QCVM then interprets.
+
 ---------------------------------------------------------------------------
 HOW TO USE QCC
 ---------------------------------------------------------------------------
@@ -49,11 +54,12 @@ id1, containing a "progs" subdirectory.
 
 If you download a copy of the Quake 1.06 QuakeC codebase, this is a great
 place to start analyzing and deconstructing what the game logic is handling.
-Updated user-managed forks of the codebase are more likely to have less errors.
+Updated user-managed forks of the codebase are more likely to have less errors,
+as the original QuakeC was "basically rather embarrassing crap", said Carmack.
 Copy all of your .qc files and your progs.src into that directory, and then 
-run qcc from there. It will compile the files listed in progs.src and (if there
+run qcc from there. It will compile the files listed in progs.src, and (if there
 aren't any errors) generate a new progs.dat file in the parent directory
-(or wherever you have pathed the binary in progs.src).
+(or wherever you have pathed the binary atop progs.src).
 
 As a simple test, open the weapons.qc file, go to the ImpulseCommands function 
 towards the EOF, write a function or two to enact some game logic once executed,
@@ -90,6 +96,7 @@ Internal Testing Specifications:
 - Arch Linux
 - DOSBox 0.74-3
 - Default DOSBox.conf
+- Quake 1.01
 
 Happy compiling!
 

@@ -10,6 +10,9 @@ lists, function tables, and global data blocks—making these structures
 accessible across the lexer, parser, and main driver modules.
 ==============================================================================
 */
+#ifndef QCC_H
+#define QCC_H
+
 #include "cmdlib.h"
 #include <stdio.h>
 #include <setjmp.h>
@@ -443,3 +446,5 @@ extern	int			precache_files_block[MAX_SOUNDS];
 extern	int			numfiles;
 
 int	CopyString (char *str);
+
+#endif //QCC_H

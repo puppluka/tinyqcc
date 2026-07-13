@@ -10,6 +10,9 @@ generate a valid progs.dat file that the Quake engine can properly load and
 execute.
 ==============================================================================
 */
+#ifndef PR_COMP_H
+#define PR_COMP_H
+
 typedef int	func_t;
 typedef int	string_t;
 
@@ -164,3 +167,4 @@ typedef struct
 	int		entityfields;
 } dprograms_t;
 
+#endif //PR_COMP_H

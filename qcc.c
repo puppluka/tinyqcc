@@ -13,6 +13,7 @@ the target binary.
 ==============================================================================
 */
 #include "qcc.h"
+#define QCCVER "0.28.3"
 
 char		destfile[1024];
 
@@ -1369,7 +1370,7 @@ void main (int argc, char **argv)
 	printf ("***********************************\n");
 	printf ("\tTinyQCC Compiler\n");
 	printf ("***********************************\n");
-	printf ("by Pup Luka - v0.25\n\n");
+	printf ("by Pup Luka - v"QCCVER"\n\n");
 
 	if ( CheckParm ("-?") || CheckParm ("-help") )
 	{
